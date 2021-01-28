@@ -8,13 +8,14 @@ const App = () => {
   const [age, setAge] = useState("");
   const [role, setRole] = useState("");
   const [salary, setSalary] = useState("");
-  const [data, setData] = useState([])
-  const [toggle, setToggle] = useState(false)
+  const [data, setData] = useState([]);
+  const [toggle, setToggle] = useState(false);
+  const [newSalary, setNewSalary] = useState("");
 
   const onSubmitHandler = (e) => {
     async function postHandler() {
       await axios
-        .post("http://localhost:5000/emp_data", {
+        .post("/emp_data", {
           name: name,
           age: age,
           role: role,
@@ -33,14 +34,53 @@ const App = () => {
   const onShowHandler = () => {
     async function getHandler() {
       await axios
-        .get("http://localhost:5000/get_data")
+        .get("/get_data")
         .then((res) => {
-          setData(res.data)
+          setData(res.data);
         })
-        .catch((err) => console.error(err));
+        .catch((err) => console.log(err));
     }
     getHandler();
   };
+
+  const updateHandler = (id) => {
+    async function update() {
+      await axios
+        .put("/update", { newSalary: newSalary, id: id })
+        .then((res) => res)
+        .catch((err) => console.log(err));
+    }
+    update();
+    setData(
+      data.map((d) => {
+        return d.emp_id === id
+          ? {
+              emp_id: d.emp_id,
+              name: d.name,
+              age: d.age,
+              role: d.role,
+              salary: newSalary,
+            }
+          : d;
+      })
+    );
+    setNewSalary("");
+  };
+
+  const onDeleteHandler = (id) => {
+    async function deleteHandler(){
+     await axios
+      .delete(`/delete/${id}`)
+      .then((res) => console.log("deleted!"))
+      .catch((err) => {
+        console.log(err);
+      });
+  } deleteHandler()
+
+  setData(data.filter(d=>{
+    return (d.emp_id !== id)
+  }))
+}
   return (
     <div className="container">
       <div className="form">
@@ -57,7 +97,16 @@ const App = () => {
         />
       </div>
       <div className="data__view">
-        <DataView toggle={toggle} setToggle={setToggle} data={data} onShowHandler={onShowHandler} />
+        <DataView
+          toggle={toggle}
+          setToggle={setToggle}
+          data={data}
+          newSalary={newSalary}
+          setNewSalary={setNewSalary}
+          onShowHandler={onShowHandler}
+          updateHandler={updateHandler}
+          onDeleteHandler={onDeleteHandler}
+        />
       </div>
     </div>
   );
